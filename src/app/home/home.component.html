@@ -1,0 +1,86 @@
+<div class="container">
+    <!-- As a link -->
+    <nav class="navbar navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Sistema Clasificador Covid - Gripe - Dengue - Resfrio</a>
+        </div>
+    </nav>
+
+    <!-- As a heading -->
+    <nav class="navbar navbar-light bg-light">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Agente Inteligente</span>
+        </div>
+    </nav>
+
+    <hr>
+    <div class="row" *ngIf="step === 1">
+        <h4>Ingrese los datos solicitados:</h4>
+    </div>
+    <div class="row" *ngIf="step === 1">
+        <div class="col">
+            <div class="row">
+                <div class="col">
+                    <input [(ngModel)]="nombre" type="text" class="form-control" placeholder="Nombre"
+                        aria-label="First name">
+                </div>
+                <div class="col">
+                    <input [(ngModel)]="apellido" type="text" class="form-control" placeholder="Apellido"
+                        aria-label="Last name">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" *ngIf="step === 2">
+        <div class="col">
+            <div class="container mt-4">
+                <h3>Ingrese sus síntomas:</h3>
+                <div class="row">
+                    <ng-container *ngFor="let item of sintomasList">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" [id]="item.id"
+                                    [(ngModel)]="sintomas[item.key]">
+                                <label class="form-check-label" [for]="item.id">{{ item.label }}</label>
+                            </div>
+                        </div>
+                    </ng-container>
+                </div>
+                <!-- Añade más checkboxes para otros síntomas de la misma manera -->
+                <button class="btn btn-primary mt-3" (click)="evaluarRiesgo()">Evaluar Riesgo</button>
+            </div>
+
+        </div>
+    </div>
+    <div class="row" *ngIf="step === 3">
+        <div class="col">
+            <div class="container mt-4">
+                <h3>Resultados:</h3>
+                <div class="row">
+                    <div class="col">
+                        <div class="alert alert-success" role="alert">
+                            <h4 class="alert-heading">{{ message | uppercase }}</h4>
+
+                            Las probabilidades encontradas fueron de
+                            <span>
+                                Covid: {{probabilidades['covid'] | number: '1.2-2' }}% ,
+                                Gripe: {{probabilidades['gripe'] | number: '1.2-2' }}% ,
+                                Dengue:{{probabilidades['dengue']| number: '1.2-2' }}%,
+                                Resfrio: {{probabilidades['resfrio'] | number: '1.2-2' }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Añade más checkboxes para otros síntomas de la misma manera -->
+                <button class="btn btn-primary mt-3" (click)="step = 2">Re-Evaluar</button>
+            </div>
+
+        </div>
+    </div>
+    <hr>
+    <div class="row" *ngIf="step === 1">
+        <div class="col-4 offset-4">
+            <button class="btn btn-primary w-100" type="button" (click)="next()">Siguiente</button>
+        </div>
+    </div>
+</div>
