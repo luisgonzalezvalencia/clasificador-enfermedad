@@ -30,6 +30,13 @@ interface EnfermedadesPuntajes {
   dengue: number;
 }
 
+interface UltimasPredicciones {
+  nombre: string;
+  apellido: string;
+  ultimasPredicciones: EnfermedadesPuntajes;
+  resultado: string;
+}
+
 
 @Component({
   selector: 'app-home',
@@ -75,7 +82,16 @@ export class HomeComponent {
     { key: 'erupcionPiel', label: 'Erupción de la Piel', id: 'erupcionPiel' }
   ];
   message: string = '';
-  public probabilidades: { covid: number; gripe: number; resfrio: number; dengue: number; } = { covid: 0, gripe: 0, resfrio: 0, dengue: 0 };
+
+  messageError: string = '';
+
+  public probabilidades: EnfermedadesPuntajes = { covid: 0, gripe: 0, resfrio: 0, dengue: 0 };
+
+  public ultimasPredicciones: UltimasPredicciones[] = [];
+
+  public temperaturaFiebre?: number;
+
+  public error: boolean = false;
 
   constructor() {
 
@@ -86,15 +102,58 @@ export class HomeComponent {
   }
 
   evaluarRiesgo() {
-
+    this.error = false;
     // Implementar evaluación de riesgo
     console.log(this.sintomas);
-    let resultados = this.motorInference();
-    this.message = `La(s) enfermedad(es) más probable(s): ${resultados.mostLikelyDiseases.join(', ')}.`
-    this.probabilidades = resultados.probabilidades;
-    this.next();
+    let cantidadTrue = 0;
+
+    Object.entries(this.sintomas).forEach(([key, val]) => {
+      if (val) {
+        cantidadTrue += 1;
+      }
+    });
+
+    console.log(cantidadTrue);
+    if (cantidadTrue >= 2) {
+
+
+
+      let resultados = this.motorInference();
+      this.message = `La(s) enfermedad(es) más probable(s): ${resultados.mostLikelyDiseases.join(', ')}.`
+      this.probabilidades = resultados.probabilidades;
+
+      this.ultimasPredicciones.push(
+        {
+          nombre: this.nombre,
+          apellido: this.apellido,
+          ultimasPredicciones: this.probabilidades,
+          resultado: resultados.mostLikelyDiseases.join(', ')
+        }
+      );
+
+      this.step = 3;
+    } else {
+      this.messageError = 'Por favor, seleccione al menos 2 sintomas para poder evaluar su riesgo.';
+      this.error = true;
+    }
+
   }
 
+
+  reiniciar() {
+    this.step = 1;
+    this.sintomas = {} as Sintomas;
+    this.message = '';
+    this.temperaturaFiebre = undefined;
+    this.error = false;
+    this.messageError = '';
+    this.nombre = '';
+    this.apellido = '';
+  }
+
+  irAHistorial() {
+    this.step = 4;
+  }
 
   motorInference() {
     // voy a sumar puntos segun cuan frecuente es el sintoma en dicha enfermedad
@@ -110,10 +169,18 @@ export class HomeComponent {
     };
 
     if (this.sintomas.fiebre) {
-      puntajes['covid'] += 3;
-      puntajes['gripe'] += 3;
-      puntajes['resfrio'] += 1;
-      puntajes['dengue'] += 3;
+      //en caso de fiebre alta, incrementamos la prob de dengue
+      if (this.temperaturaFiebre && this.temperaturaFiebre >= 39) {
+        puntajes['covid'] += 1;
+        puntajes['gripe'] += 1;
+        puntajes['resfrio'] += 1;
+        puntajes['dengue'] += 3;
+      } else {
+        puntajes['covid'] += 2;
+        puntajes['gripe'] += 2;
+        puntajes['resfrio'] += 1;
+        puntajes['dengue'] += 2;
+      }
     }
     if (this.sintomas.tos) {
       puntajes['covid'] += 3;
@@ -183,5 +250,4 @@ export class HomeComponent {
       mostLikelyDiseases: mostLikelyDiseases
     }
   }
-
 }
